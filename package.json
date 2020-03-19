@@ -1,0 +1,33 @@
+{
+    "name": "lua-doc",
+    "displayName": "Lua Doc",
+    "description": "",
+    "version": "0.0.1",
+    "publisher": "actboy168",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/actboy168/vscode-lua-doc"
+    },
+    "bugs": {
+        "url": "https://github.com/actboy168/vscode-lua-doc/issues"
+    },
+    "categories": [
+        "Other"
+    ],
+    "engines": {
+        "vscode": "^1.43.0"
+    },
+    "activationEvents": [
+        "onCommand:lua-doc.open"
+    ],
+    "contributes": {
+        "commands": [
+            {
+                "command": "lua-doc.open",
+                "title": "open webview",
+                "category": "lua-doc"
+            }
+        ]
+    },
+    "main": "./extension.js"
+}
