@@ -4,7 +4,7 @@
       {
         "id": "openLuaDoc",
         "type": "command",
-        "command": "lua-doc.open",
+        "command": "extension.lua.doc",
         "args": "en-us/54/manual.html#lua_rawget"
       }
     ],

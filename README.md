@@ -1,5 +1,5 @@
 # Lua Doc
 
 ``` js
-    vscode.commands.executeCommand('lua-doc.open', "en-us/54/manual.html#lua_rawget");
+    vscode.commands.executeCommand('extension.lua.doc', "en-us/54/manual.html#lua_rawget");
 ```

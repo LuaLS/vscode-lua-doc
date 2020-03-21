@@ -18,14 +18,14 @@
         "vscode": "^1.43.0"
     },
     "activationEvents": [
-        "onCommand:lua-doc.open"
+        "onCommand:extension.lua.doc"
     ],
     "contributes": {
         "commands": [
             {
-                "command": "lua-doc.open",
+                "command": "extension.lua.doc",
                 "title": "open webview",
-                "category": "lua-doc"
+                "category": "lua doc"
             }
         ]
     },
