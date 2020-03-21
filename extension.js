@@ -123,12 +123,12 @@ function checkAndCompile(workPath, language, version) {
 }
 
 function openHtml(workPath, file) {
-    if (currentPanel._file == file) {
+    const htmlPath = path.join(workPath, 'out', currentPanel._language, currentPanel._version, file);
+    if (currentPanel._file == htmlPath) {
         return;
     }
-    const htmlPath = path.join(workPath, 'out', currentPanel._language, currentPanel._version, file);
     const html = fs.readFileSync(htmlPath, 'utf8');
-    currentPanel._file = file;
+    currentPanel._file = htmlPath;
     currentPanel.title = html.match(/<title>(.*?)<\/title>/i)[1];
     currentPanel.webview.html = html;
 }
