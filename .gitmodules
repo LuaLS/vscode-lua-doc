@@ -1,0 +1,3 @@
+[submodule "doc/zh-cn/53"]
+	path = doc/zh-cn/53
+	url = https://github.com/cloudwu/lua53doc
