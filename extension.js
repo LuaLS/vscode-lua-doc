@@ -137,7 +137,17 @@ function gotoAnchor(anchor) {
     currentPanel.webview.postMessage({ command: 'goto', anchor: anchor });
 }
 
-function createPanel(workPath, disposables, viewType, args) {
+function parseUri(uri) {
+    const l = uri.split(/[\/#]/g);
+    return {
+        language: l[0],
+        version: l[1],
+        file: l[2],
+        anchor: l[3],
+    };
+}
+
+function createPanel(workPath, disposables, viewType, uri) {
     const column = vscode.window.activeTextEditor
         ? vscode.window.activeTextEditor.viewColumn
         : vscode.ViewColumn.One;
@@ -174,6 +184,7 @@ function createPanel(workPath, disposables, viewType, args) {
             disposables
         );
     }
+    const args = parseUri(uri);
     if (!checkAndCompile(workPath, args.language, args.version)) {
         return;
     }
@@ -184,13 +195,9 @@ function createPanel(workPath, disposables, viewType, args) {
 }
 
 function activateLuaDoc(workPath, disposables, LuaDoc) {
-    disposables.push(vscode.commands.registerCommand(LuaDoc.OpenCommand, (args) => {
+    disposables.push(vscode.commands.registerCommand(LuaDoc.OpenCommand, (uri) => {
         try {
-            createPanel(workPath, disposables, LuaDoc.ViewType, args || {
-                language: "en-us",
-                version: "54",
-                file: "readme.html",
-            });
+            createPanel(workPath, disposables, LuaDoc.ViewType, uri || "en-us/54/readme.html");
         } catch (error) {
             console.error(error)
         }

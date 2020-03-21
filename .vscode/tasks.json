@@ -5,12 +5,7 @@
         "id": "openLuaDoc",
         "type": "command",
         "command": "lua-doc.open",
-        "args": {
-            "language" : "en-us",
-            "version" : "54",
-            "file" : "manual.html",
-            "anchor": "lua_rawget"
-        }
+        "args": "en-us/54/manual.html#lua_rawget"
       }
     ],
     "tasks": [
