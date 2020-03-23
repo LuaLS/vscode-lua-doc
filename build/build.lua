@@ -17,4 +17,5 @@ local function build(ver)
 end
 
 build "54"
+build "53"
 print "OK!"

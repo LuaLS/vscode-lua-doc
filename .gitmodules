@@ -4,3 +4,6 @@
 [submodule "build/54"]
 	path = build/54
 	url = https://github.com/lua/lua
+[submodule "build/53"]
+	path = build/53
+	url = https://github.com/lua/lua
