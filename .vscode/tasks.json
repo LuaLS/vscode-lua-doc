@@ -4,13 +4,13 @@
       {
         "id": "openLuaDoc",
         "type": "command",
-        "command": "extension.lua.doc",
+        "command": "test.lua.doc",
         "args": "en-us/54/manual.html#lua_rawget"
       }
     ],
     "tasks": [
         {
-            "label": "Test",
+            "label": "OpenLuaDoc",
             "type": "shell",
             "command": "${input:openLuaDoc}",
         }
