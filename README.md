@@ -1,5 +1,7 @@
 # Lua Doc
 
+This is part of [vscode-lua](https://github.com/sumneko/vscode-lua).
+
 ``` js
-    vscode.commands.executeCommand('extension.lua.doc', "en-us/54/manual.html#lua_rawget");
+    vscode.commands.executeCommand('test.lua.doc', "en-us/54/manual.html#lua_rawget");
 ```
