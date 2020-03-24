@@ -19,14 +19,24 @@ function compileCss(srcPath, dstPath, name) {
     fs.writeFileSync(path.join(dstPath, name), css);
 }
 
-function compileHtml(srcPath, dstPath, name) {
+function compileHtml(srcPath, dstPath, language, version, name) {
     let html = fs.readFileSync(path.join(srcPath, name), 'utf8');
     html = html.replace(/(<\/body>)/i, `
 <SCRIPT>
     const vscode = acquireVsCodeApi();
+    function saveState() {
+        vscode.setState({
+            language: "${language}",
+            version: "${version}",
+            file: "${name}",
+            scrollTop: document.body.scrollTop + document.documentElement.scrollTop,
+            scrollLeft: document.body.scrollLeft + document.documentElement.scrollLeft,
+        });
+    }
     function gotoAnchor(anchor) {
         for (const e of document.getElementsByName(anchor)) {
             e.scrollIntoView();
+            saveState();
             break;
         }
     }
@@ -51,8 +61,16 @@ function compileHtml(srcPath, dstPath, name) {
             case 'goto':
                 gotoAnchor(message.anchor);
                 break;
+            case 'scrollTo':
+                window.scrollTo(message.left, message.top);
+                saveState();
+                break;
         }
     });
+    window.setInterval(() => {
+        saveState();
+    }, 100);
+    saveState();
 </SCRIPT>
 $1
     `);
@@ -69,7 +87,7 @@ $1
     fs.writeFileSync(path.join(dstPath, name), html);
 }
 
-function compile(workPath, srcPath, dstPath) {
+function compile(workPath, language, version, srcPath, dstPath) {
     fs.mkdirSync(dstPath, { recursive: true });
     fs.readdirSync(srcPath).forEach(function(name) {
         const file = path.join(srcPath, name);
@@ -79,7 +97,7 @@ function compile(workPath, srcPath, dstPath) {
         }
         const extname = path.extname(file);
         if (".html" == extname) {
-            compileHtml(srcPath, dstPath, name);
+            compileHtml(srcPath, dstPath, language, version, name);
         }
         else if (".css" == extname) {
             compileCss(path.join(workPath, 'doc', 'en-us', '54'), dstPath, name);
@@ -114,7 +132,7 @@ function checkAndCompile(workPath, language, version) {
 </html>`;
             return false;
         }
-        compile(workPath, srcPath, dstPath);
+        compile(workPath, language, version, srcPath, dstPath);
         fs.writeFileSync(path.join(dstPath, '.compiled'), workPath);
     }
     currentPanel._language = language;
@@ -147,42 +165,51 @@ function parseUri(uri) {
     };
 }
 
-function createPanel(workPath, disposables, viewType, uri) {
+function createPanel(workPath, disposables, viewType, column) {
+    const options = { 
+        enableScripts: true,
+        enableFindWidget: true,
+        retainContextWhenHidden: true,
+    };
+    let panel = vscode.window.createWebviewPanel(viewType, '', { viewColumn: column, preserveFocus: true }, options);
+    panel.webview.onDidReceiveMessage(
+        message => {
+            switch (message.command) {
+                case 'goto':
+                    const uri = message.uri.split("#");
+                    openHtml(workPath, uri[0]);
+                    if (uri[1]) {
+                        gotoAnchor(uri[1]);
+                    }
+                    return;
+            }
+        },
+        null,
+        disposables
+    );
+    panel.onDidDispose(
+        () => {
+            currentPanel = undefined;
+        },
+        null,
+        disposables
+    );
+    return panel;
+}
+
+function createWebviewPanel(workPath, disposables, viewType, uri) {
     const column = vscode.window.activeTextEditor
         ? vscode.window.activeTextEditor.viewColumn
         : vscode.ViewColumn.One;
     if (currentPanel) {
-        currentPanel.reveal(column, true);
+        try {
+            currentPanel.reveal(column, true);
+        } catch (error) {
+            currentPanel = undefined;
+        }
     }
-    else {
-        const options = { 
-            enableScripts: true,
-            enableFindWidget: true,
-            retainContextWhenHidden: true,
-        };
-        currentPanel = vscode.window.createWebviewPanel(viewType, '', { viewColumn: column, preserveFocus: true }, options);
-        currentPanel.webview.onDidReceiveMessage(
-            message => {
-                switch (message.command) {
-                    case 'goto':
-                        const uri = message.uri.split("#");
-                        openHtml(workPath, uri[0]);
-                        if (uri[1]) {
-                            gotoAnchor(uri[1]);
-                        }
-                        return;
-                }
-            },
-            null,
-            disposables
-        );
-        currentPanel.onDidDispose(
-            () => {
-                currentPanel = undefined;
-            },
-            null,
-            disposables
-        );
+    if (!currentPanel) {
+        currentPanel = createPanel(workPath, disposables, viewType, column);
     }
     const args = parseUri(uri);
     if (!checkAndCompile(workPath, args.language, args.version)) {
@@ -194,14 +221,41 @@ function createPanel(workPath, disposables, viewType, uri) {
     }
 }
 
+function revealWebviewPanel(workPath, webviewPanel, state) {
+    if (!state) {
+        webviewPanel.dispose();
+        return;
+    }
+    currentPanel = webviewPanel;
+    if (!checkAndCompile(workPath, state.language, state.version)) {
+        return;
+    }
+    openHtml(workPath, state.file);
+    currentPanel.webview.postMessage({
+        command: 'scrollTo',
+        top: state.scrollTop,
+        left: state.scrollLeft,
+    });
+}
+
 function activateLuaDoc(workPath, disposables, LuaDoc) {
     disposables.push(vscode.commands.registerCommand(LuaDoc.OpenCommand, (uri) => {
         try {
-            createPanel(workPath, disposables, LuaDoc.ViewType, uri || "en-us/54/readme.html");
+            createWebviewPanel(workPath, disposables, LuaDoc.ViewType, uri || "en-us/54/readme.html");
         } catch (error) {
             console.error(error)
         }
     }));
+
+    vscode.window.registerWebviewPanelSerializer(LuaDoc.ViewType, {
+        deserializeWebviewPanel(webviewPanel, state) {
+            try {
+                revealWebviewPanel(workPath, webviewPanel, state)
+            } catch (error) {
+                console.error(error)
+            }
+        }
+    });
 }
 
 function activate(context) {

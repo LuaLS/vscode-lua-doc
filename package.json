@@ -18,6 +18,7 @@
         "vscode": "^1.43.0"
     },
     "activationEvents": [
+        "onWebviewPanel:lua-doc",
         "onCommand:test.lua.doc"
     ],
     "contributes": {
