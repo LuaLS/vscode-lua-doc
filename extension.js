@@ -165,13 +165,26 @@ function parseUri(uri) {
     };
 }
 
-function createPanel(workPath, disposables, viewType, column) {
+function getViewColumn(reveal) {
+    if (vscode.window.activeTextEditor) {
+        if (vscode.window.activeTextEditor.viewColumn == vscode.ViewColumn.One) {
+            return vscode.ViewColumn.Two;
+        }
+        return vscode.window.activeTextEditor.viewColumn;
+    }
+    if (reveal) {
+        return undefined;
+    }
+    return vscode.ViewColumn.One;
+}
+
+function createPanel(workPath, disposables, viewType) {
     const options = { 
         enableScripts: true,
         enableFindWidget: true,
         retainContextWhenHidden: true,
     };
-    let panel = vscode.window.createWebviewPanel(viewType, '', { viewColumn: column, preserveFocus: true }, options);
+    let panel = vscode.window.createWebviewPanel(viewType, '', { viewColumn: getViewColumn(false), preserveFocus: true }, options);
     panel.webview.onDidReceiveMessage(
         message => {
             switch (message.command) {
@@ -198,18 +211,15 @@ function createPanel(workPath, disposables, viewType, column) {
 }
 
 function createWebviewPanel(workPath, disposables, viewType, uri) {
-    const column = vscode.window.activeTextEditor
-        ? vscode.window.activeTextEditor.viewColumn
-        : vscode.ViewColumn.One;
     if (currentPanel) {
         try {
-            currentPanel.reveal(column, true);
+            currentPanel.reveal(getViewColumn(true), true);
         } catch (error) {
             currentPanel = undefined;
         }
     }
     if (!currentPanel) {
-        currentPanel = createPanel(workPath, disposables, viewType, column);
+        currentPanel = createPanel(workPath, disposables, viewType);
     }
     const args = parseUri(uri);
     if (!checkAndCompile(workPath, args.language, args.version)) {
