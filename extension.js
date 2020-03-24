@@ -14,9 +14,6 @@ function compileCss(srcPath, dstPath, name) {
         if (line.match('color')) {
             return '';
         }
-        if (line.match('font-family')) {
-            return '';
-        }
         return line;
     }).join('\n');
     fs.writeFileSync(path.join(dstPath, name), css);
