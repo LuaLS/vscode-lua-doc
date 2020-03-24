@@ -72,7 +72,7 @@ $1
     fs.writeFileSync(path.join(dstPath, name), html);
 }
 
-function compile(srcPath, dstPath) {
+function compile(workPath, srcPath, dstPath) {
     fs.mkdirSync(dstPath, { recursive: true });
     fs.readdirSync(srcPath).forEach(function(name) {
         const file = path.join(srcPath, name);
@@ -85,7 +85,7 @@ function compile(srcPath, dstPath) {
             compileHtml(srcPath, dstPath, name);
         }
         else if (".css" == extname) {
-            compileCss(srcPath, dstPath, name);
+            compileCss(path.join(workPath, 'doc', 'en-us', '54'), dstPath, name);
         }
         else {
             compileOther(srcPath, dstPath, name);
@@ -117,7 +117,7 @@ function checkAndCompile(workPath, language, version) {
 </html>`;
             return false;
         }
-        compile(srcPath, dstPath);
+        compile(workPath, srcPath, dstPath);
         fs.writeFileSync(path.join(dstPath, '.compiled'), workPath);
     }
     currentPanel._language = language;
