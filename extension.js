@@ -73,7 +73,7 @@ function compileHtml(srcPath, dstPath, language, version, name) {
     saveState();
 </SCRIPT>
 $1
-    `);
+`);
     fs.readdirSync(srcPath).forEach(function(name) {
         const file = path.join(srcPath, name);
         const stat = fs.statSync(file);
@@ -141,12 +141,26 @@ function checkAndCompile(workPath, language, version) {
 }
 
 function openHtml(workPath, file) {
-    const htmlPath = path.join(workPath, 'out', currentPanel._language, currentPanel._version, file);
+    const language = currentPanel._language;
+    const version  = currentPanel._version;
+    const htmlPath = path.join(workPath, 'out', language, version, file);
     if (currentPanel._file == htmlPath) {
         return;
     }
-    const html = fs.readFileSync(htmlPath, 'utf8');
     currentPanel._file = htmlPath;
+    if (!fs.existsSync(htmlPath)) {
+        currentPanel.title = 'Error';
+        currentPanel.webview.html = `
+<!DOCTYPE html>
+<html lang="en">
+<head></head>
+<body>
+    <h1>Not Found doc/${language}/${version}/${file}</h1>
+</body>
+</html>`;
+        return;
+    }
+    const html = fs.readFileSync(htmlPath, 'utf8');
     currentPanel.title = html.match(/<title>(.*?)<\/title>/i)[1];
     currentPanel.webview.html = html;
 }
