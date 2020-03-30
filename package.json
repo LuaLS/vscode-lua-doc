@@ -2,7 +2,7 @@
     "name": "lua-doc",
     "displayName": "Lua Doc",
     "description": "",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "publisher": "actboy168",
     "repository": {
         "type": "git",
