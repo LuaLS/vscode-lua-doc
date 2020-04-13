@@ -1,12 +1,12 @@
 {
     "version": "2.0.0",
     "inputs": [
-      {
-        "id": "openLuaDoc",
-        "type": "command",
-        "command": "test.lua.doc",
-        "args": "en-us/54/manual.html#lua_rawget"
-      }
+        {
+            "id": "openLuaDoc",
+            "type": "command",
+            "command": "test.lua.doc",
+            "args": "en-us/54/manual.html#lua_rawget"
+        }
     ],
     "tasks": [
         {

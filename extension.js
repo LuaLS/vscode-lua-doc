@@ -10,7 +10,7 @@ function compileOther(srcPath, dstPath, name) {
 
 function compileCss(srcPath, dstPath, name) {
     let css = fs.readFileSync(path.join(srcPath, name), 'utf8');
-    css = css.split('\n').map(function(line) {
+    css = css.split('\n').map(function (line) {
         if (line.match('color')) {
             return '';
         }
@@ -74,7 +74,7 @@ function compileHtml(srcPath, dstPath, language, version, name) {
 </SCRIPT>
 $1
 `);
-    fs.readdirSync(srcPath).forEach(function(name) {
+    fs.readdirSync(srcPath).forEach(function (name) {
         const file = path.join(srcPath, name);
         const stat = fs.statSync(file);
         if (stat && stat.isFile()) {
@@ -89,7 +89,7 @@ $1
 
 function compile(workPath, language, version, srcPath, dstPath) {
     fs.mkdirSync(dstPath, { recursive: true });
-    fs.readdirSync(srcPath).forEach(function(name) {
+    fs.readdirSync(srcPath).forEach(function (name) {
         const file = path.join(srcPath, name);
         const stat = fs.statSync(file);
         if (!stat || !stat.isFile()) {
@@ -136,13 +136,13 @@ function checkAndCompile(workPath, language, version) {
         fs.writeFileSync(path.join(dstPath, '.compiled'), workPath);
     }
     currentPanel._language = language;
-    currentPanel._version  = version;
+    currentPanel._version = version;
     return true
 }
 
 function openHtml(workPath, file) {
     const language = currentPanel._language;
-    const version  = currentPanel._version;
+    const version = currentPanel._version;
     const htmlPath = path.join(workPath, 'out', language, version, file);
     if (currentPanel._file == htmlPath) {
         return;
@@ -193,7 +193,7 @@ function getViewColumn(reveal) {
 }
 
 function createPanel(workPath, disposables, viewType) {
-    const options = { 
+    const options = {
         enableScripts: true,
         enableFindWidget: true,
         retainContextWhenHidden: true,
@@ -284,7 +284,7 @@ function activateLuaDoc(workPath, disposables, LuaDoc) {
 
 function activate(context) {
     activateLuaDoc(context.extensionPath, context.subscriptions, {
-        ViewType: context.ViewType || 'lua-doc', 
+        ViewType: context.ViewType || 'lua-doc',
         OpenCommand: context.OpenCommand || 'test.lua.doc',
     });
 }
