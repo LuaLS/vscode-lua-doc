@@ -147,6 +147,16 @@ for small machines and embedded systems.
 
 
 <p>
+Unless stated otherwise,
+any overflow when manipulating integer values <em>wrap around</em>,
+according to the usual rules of two-complement arithmetic.
+(In other words,
+the actual result is the unique representable integer
+that is equal modulo <em>2<sup>n</sup></em> to the mathematical result,
+where <em>n</em> is the number of bits of the integer type.)
+
+
+<p>
 Lua has explicit rules about when each subtype is used,
 but it also converts between them automatically as needed (see <a href="#3.4.3">&sect;3.4.3</a>).
 Therefore,
@@ -297,7 +307,7 @@ Any table used as the value of <code>_ENV</code> is called an <em>environment</e
 
 <p>
 Lua keeps a distinguished environment called the <em>global environment</em>.
-This value is kept at a special index in the C registry (see <a href="#4.5">&sect;4.5</a>).
+This value is kept at a special index in the C registry (see <a href="#4.3">&sect;4.3</a>).
 In Lua, the global variable <a href="#pdf-_G"><code>_G</code></a> is initialized with this same value.
 (<a href="#pdf-_G"><code>_G</code></a> is never used internally,
 so changing its value will affect only your own code.)
@@ -1320,8 +1330,13 @@ if its value fits in an integer or it is a hexadecimal constant,
 it denotes an integer;
 otherwise (that is, a decimal integer numeral that overflows),
 it denotes a float.
-(Hexadecimal integer numerals that overflow <em>wrap around</em>;
-they always denote an integer value.)
+Hexadecimal numerals with neither a radix point nor an exponent
+always denote an integer value;
+if the value overflows, it <em>wraps around</em>
+to fit into a valid integer.
+
+
+<p>
 Examples of valid integer constants are
 
 <pre>
@@ -2088,12 +2103,7 @@ that rounds the quotient towards minus infinity (floor division).
 
 <p>
 In case of overflows in integer arithmetic,
-all operations <em>wrap around</em>,
-according to the usual rules of two-complement arithmetic.
-(In other words,
-they return the unique representable integer
-that is equal modulo <em>2<sup>n</sup></em> to the mathematical result,
-where <em>n</em> is the number of bits of the integer type.)
+all operations <em>wrap around</em>.
 
 
 
@@ -2875,9 +2885,7 @@ and index <em>-n</em> represents the first element.
 
 
 
-
-
-<h2>4.2 &ndash; <a name="4.2">Stack Size</a></h2>
+<h3>4.1.1 &ndash; <a name="4.1.1">Stack Size</a></h3>
 
 <p>
 When you interact with the Lua API,
@@ -2909,7 +2917,7 @@ you should use <a href="#lua_checkstack"><code>lua_checkstack</code></a>.
 
 
 
-<h2>4.3 &ndash; <a name="4.3">Valid and Acceptable Indices</a></h2>
+<h3>4.1.2 &ndash; <a name="4.1.2">Valid and Acceptable Indices</a></h3>
 
 <p>
 Any function in the API that receives stack indices
@@ -2925,8 +2933,8 @@ It comprises stack indices between&nbsp;1 and the stack top
 plus <em>pseudo-indices</em>,
 which represent some positions that are accessible to C&nbsp;code
 but that are not in the stack.
-Pseudo-indices are used to access the registry (see <a href="#4.5">&sect;4.5</a>)
-and the upvalues of a C&nbsp;function (see <a href="#4.4">&sect;4.4</a>).
+Pseudo-indices are used to access the registry (see <a href="#4.3">&sect;4.3</a>)
+and the upvalues of a C&nbsp;function (see <a href="#4.2">&sect;4.2</a>).
 
 
 <p>
@@ -2938,7 +2946,7 @@ but it also can be any positive index after the stack top
 within the space allocated for the stack,
 that is, indices up to the stack size.
 (Note that 0 is never an acceptable index.)
-Indices to upvalues (see <a href="#4.4">&sect;4.4</a>) greater than the real number
+Indices to upvalues (see <a href="#4.2">&sect;4.2</a>) greater than the real number
 of upvalues in the current C&nbsp;function are also acceptable (but invalid).
 Except when noted otherwise,
 functions in the API work with acceptable indices.
@@ -2962,7 +2970,9 @@ which behaves like a nil value.
 
 
 
-<h2>4.4 &ndash; <a name="4.4">C Closures</a></h2>
+
+
+<h2>4.2 &ndash; <a name="4.2">C Closures</a></h2>
 
 <p>
 When a C&nbsp;function is created,
@@ -2996,7 +3006,7 @@ of its corresponding upvalues.
 
 
 
-<h2>4.5 &ndash; <a name="4.5">Registry</a></h2>
+<h2>4.3 &ndash; <a name="4.3">Registry</a></h2>
 
 <p>
 Lua provides a <em>registry</em>,
@@ -3045,7 +3055,7 @@ the global environment.
 
 
 
-<h2>4.6 &ndash; <a name="4.6">Error Handling in C</a></h2>
+<h2>4.4 &ndash; <a name="4.4">Error Handling in C</a></h2>
 
 <p>
 Internally, Lua uses the C <code>longjmp</code> facility to handle errors.
@@ -3104,13 +3114,43 @@ The panic function runs as if it were a message handler (see <a href="#2.3">&sec
 in particular, the error object is on the top of the stack.
 However, there is no guarantee about stack space.
 To push anything on the stack,
-the panic function must first check the available space (see <a href="#4.2">&sect;4.2</a>).
+the panic function must first check the available space (see <a href="#4.1.1">&sect;4.1.1</a>).
+
+
+
+<h3>4.4.1 &ndash; <a name="4.4.1">Status Codes</a></h3>
+
+<p>
+Several functions that report errors in the API use the following
+status codes to indicate different kinds of errors or other conditions:
+
+<ul>
+
+<li><b><a name="pdf-LUA_OK"><code>LUA_OK</code></a> (0): </b> no errors.</li>
+
+<li><b><a name="pdf-LUA_ERRRUN"><code>LUA_ERRRUN</code></a>: </b> a runtime error.</li>
+
+<li><b><a name="pdf-LUA_ERRMEM"><code>LUA_ERRMEM</code></a>: </b>
+memory allocation error.
+For such errors, Lua does not call the message handler.
+</li>
+
+<li><b><a name="pdf-LUA_ERRERR"><code>LUA_ERRERR</code></a>: </b> error while running the message handler.</li>
+
+<li><b><a name="pdf-LUA_ERRSYNTAX"><code>LUA_ERRSYNTAX</code></a>: </b> syntax error during precompilation.</li>
+
+<li><b><a name="pdf-LUA_YIELD"><code>LUA_YIELD</code></a>: </b> the thread (coroutine) yields.</li>
+
+</ul><p>
+These constants are defined in the header file <code>lua.h</code>.
 
 
 
 
 
-<h2>4.7 &ndash; <a name="4.7">Handling Yields in C</a></h2>
+
+
+<h2>4.5 &ndash; <a name="4.5">Handling Yields in C</a></h2>
 
 <p>
 Internally, Lua uses the C <code>longjmp</code> facility to yield a coroutine.
@@ -3247,7 +3287,7 @@ of the original function.
 
 
 
-<h2>4.8 &ndash; <a name="4.8">Functions and Types</a></h2>
+<h2>4.6 &ndash; <a name="4.6">Functions and Types</a></h2>
 
 <p>
 Here we list all functions and types from the C&nbsp;API in
@@ -3414,7 +3454,7 @@ The value of <code>op</code> must be one of the following constants:
 <pre>lua_CFunction lua_atpanic (lua_State *L, lua_CFunction panicf);</pre>
 
 <p>
-Sets a new panic function and returns the old one (see <a href="#4.6">&sect;4.6</a>).
+Sets a new panic function and returns the old one (see <a href="#4.4">&sect;4.4</a>).
 
 
 
@@ -3495,7 +3535,7 @@ This is considered good programming practice.
 
 <p>
 This function behaves exactly like <a href="#lua_call"><code>lua_call</code></a>,
-but allows the called function to yield (see <a href="#4.7">&sect;4.7</a>).
+but allows the called function to yield (see <a href="#4.5">&sect;4.5</a>).
 
 
 
@@ -4178,7 +4218,7 @@ Otherwise, it is defined as <code>ptrdiff_t</code>.
 <pre>typedef int (*lua_KFunction) (lua_State *L, int status, lua_KContext ctx);</pre>
 
 <p>
-Type for continuation functions (see <a href="#4.7">&sect;4.7</a>).
+Type for continuation functions (see <a href="#4.5">&sect;4.5</a>).
 
 
 
@@ -4215,21 +4255,6 @@ Otherwise, it pushes an error message.
 
 
 <p>
-The return values of <code>lua_load</code> are:
-
-<ul>
-
-<li><b><a href="#pdf-LUA_OK"><code>LUA_OK</code></a>: </b> no errors;</li>
-
-<li><b><a name="pdf-LUA_ERRSYNTAX"><code>LUA_ERRSYNTAX</code></a>: </b>
-syntax error during precompilation;</li>
-
-<li><b><a href="#pdf-LUA_ERRMEM"><code>LUA_ERRMEM</code></a>: </b>
-memory allocation (out-of-memory) error;</li>
-
-</ul>
-
-<p>
 The <code>lua_load</code> function uses a user-supplied <code>reader</code> function
 to read the chunk (see <a href="#lua_Reader"><code>lua_Reader</code></a>).
 The <code>data</code> argument is an opaque value passed to the reader function.
@@ -4237,7 +4262,7 @@ The <code>data</code> argument is an opaque value passed to the reader function.
 
 <p>
 The <code>chunkname</code> argument gives a name to the chunk,
-which is used for error messages and in debug information (see <a href="#4.9">&sect;4.9</a>).
+which is used for error messages and in debug information (see <a href="#5.1">&sect;5.1</a>).
 
 
 <p>
@@ -4255,9 +4280,16 @@ unmodified when returning.
 
 
 <p>
+<code>lua_load</code> can return
+<a href="#pdf-LUA_OK"><code>LUA_OK</code></a>, <a href="#pdf-LUA_ERRSYNTAX"><code>LUA_ERRSYNTAX</code></a>, or <a href="#pdf-LUA_ERRMEM"><code>LUA_ERRMEM</code></a>.
+The function may also return other values corresponding to
+errors raised by the read function (see <a href="#4.4.1">&sect;4.4.1</a>).
+
+
+<p>
 If the resulting function has upvalues,
 its first upvalue is set to the value of the global environment
-stored at index <code>LUA_RIDX_GLOBALS</code> in the registry (see <a href="#4.5">&sect;4.5</a>).
+stored at index <code>LUA_RIDX_GLOBALS</code> in the registry (see <a href="#4.3">&sect;4.3</a>).
 When loading main chunks,
 this upvalue will be the <code>_ENV</code> variable (see <a href="#2.2">&sect;2.2</a>).
 Other upvalues are initialized with <b>nil</b>.
@@ -4462,28 +4494,11 @@ since by then the stack has unwound.
 
 
 <p>
-The <a href="#lua_pcall"><code>lua_pcall</code></a> function returns one of the following constants
-(defined in <code>lua.h</code>):
+The <a href="#lua_pcall"><code>lua_pcall</code></a> function returns one of the following status codes:
+<a href="#pdf-LUA_OK"><code>LUA_OK</code></a>, <a href="#pdf-LUA_ERRRUN"><code>LUA_ERRRUN</code></a>, <a href="#pdf-LUA_ERRMEM"><code>LUA_ERRMEM</code></a>, or <a href="#pdf-LUA_ERRERR"><code>LUA_ERRERR</code></a>.
 
-<ul>
 
-<li><b><a name="pdf-LUA_OK"><code>LUA_OK</code></a> (0): </b>
-success.</li>
 
-<li><b><a name="pdf-LUA_ERRRUN"><code>LUA_ERRRUN</code></a>: </b>
-a runtime error.
-</li>
-
-<li><b><a name="pdf-LUA_ERRMEM"><code>LUA_ERRMEM</code></a>: </b>
-memory allocation error.
-For such errors, Lua does not call the message handler.
-</li>
-
-<li><b><a name="pdf-LUA_ERRERR"><code>LUA_ERRERR</code></a>: </b>
-error while running the message handler.
-</li>
-
-</ul>
 
 
 
@@ -4499,7 +4514,7 @@ error while running the message handler.
 
 <p>
 This function behaves exactly like <a href="#lua_pcall"><code>lua_pcall</code></a>,
-but allows the called function to yield (see <a href="#4.7">&sect;4.7</a>).
+except that it allows the called function to yield (see <a href="#4.5">&sect;4.5</a>).
 
 
 
@@ -4537,7 +4552,7 @@ This function receives a pointer to a C&nbsp;function
 and pushes onto the stack a Lua value of type <code>function</code> that,
 when called, invokes the corresponding C&nbsp;function.
 The parameter <code>n</code> tells how many upvalues this function will have
-(see <a href="#4.4">&sect;4.4</a>).
+(see <a href="#4.2">&sect;4.2</a>).
 
 
 <p>
@@ -4551,7 +4566,7 @@ When a C&nbsp;function is created,
 it is possible to associate some values with it,
 the so called upvalues;
 these upvalues are then accessible to the function whenever it is called.
-This association is called a C&nbsp;closure (see <a href="#4.4">&sect;4.4</a>).
+This association is called a C&nbsp;closure (see <a href="#4.2">&sect;4.2</a>).
 To create a C&nbsp;closure,
 first the initial values for its upvalues must be pushed onto the stack.
 (When there are multiple upvalues, the first value is pushed first.)
@@ -5023,7 +5038,7 @@ or returned by the body function.
 <a href="#pdf-LUA_YIELD"><code>LUA_YIELD</code></a> if the coroutine yields,
 <a href="#pdf-LUA_OK"><code>LUA_OK</code></a> if the coroutine finishes its execution
 without errors,
-or an error code in case of errors (see <a href="#lua_pcall"><code>lua_pcall</code></a>).
+or an error code in case of errors (see <a href="#4.4.1">&sect;4.4.1</a>).
 In case of errors,
 the error object is on the top of the stack.
 
@@ -5238,7 +5253,7 @@ Returns the status of the thread <code>L</code>.
 The status can be <a href="#pdf-LUA_OK"><code>LUA_OK</code></a> for a normal thread,
 an error code if the thread finished the execution
 of a <a href="#lua_resume"><code>lua_resume</code></a> with an error,
-or <a name="pdf-LUA_YIELD"><code>LUA_YIELD</code></a> if the thread is suspended.
+or <a href="#pdf-LUA_YIELD"><code>LUA_YIELD</code></a> if the thread is suspended.
 
 
 <p>
@@ -5546,7 +5561,7 @@ The unsigned version of <a href="#lua_Integer"><code>lua_Integer</code></a>.
 
 <p>
 Returns the pseudo-index that represents the <code>i</code>-th upvalue of
-the running function (see <a href="#4.4">&sect;4.4</a>).
+the running function (see <a href="#4.2">&sect;4.2</a>).
 <code>i</code> must be in the range <em>[1,256]</em>.
 
 
@@ -5648,7 +5663,7 @@ and pushes them onto the stack <code>to</code>.
 
 <p>
 This function is equivalent to <a href="#lua_yieldk"><code>lua_yieldk</code></a>,
-but it has no continuation (see <a href="#4.7">&sect;4.7</a>).
+but it has no continuation (see <a href="#4.5">&sect;4.5</a>).
 Therefore, when the thread resumes,
 it continues the function that called
 the function calling <code>lua_yield</code>.
@@ -5681,7 +5696,7 @@ that will be passed as results to <a href="#lua_resume"><code>lua_resume</code><
 <p>
 When the coroutine is resumed again,
 Lua calls the given continuation function <code>k</code> to continue
-the execution of the C&nbsp;function that yielded (see <a href="#4.7">&sect;4.7</a>).
+the execution of the C&nbsp;function that yielded (see <a href="#4.5">&sect;4.5</a>).
 This continuation function receives the same stack
 from the previous function,
 with the <code>n</code> results removed and
@@ -5697,7 +5712,7 @@ when the coroutine eventually resumes,
 it continues executing the continuation function.
 However, there is one special case,
 which is when this function is called
-from inside a line or a count hook (see <a href="#4.9">&sect;4.9</a>).
+from inside a line or a count hook (see <a href="#5.1">&sect;5.1</a>).
 In that case, <code>lua_yieldk</code> should be called with no continuation
 (probably in the form of <a href="#lua_yield"><code>lua_yield</code></a>) and no results,
 and the hook should return immediately after the call.
@@ -5718,9 +5733,7 @@ or it is called from a thread that is not running inside a resume
 
 
 
-
-
-<h2>4.9 &ndash; <a name="4.9">The Debug Interface</a></h2>
+<h2>5.1 &ndash; <a name="5.1">The Debug Interface</a></h2>
 
 <p>
 Lua has no built-in debugging facilities.
@@ -6279,8 +6292,6 @@ refer to the <code>n2</code>-th upvalue of the Lua closure at index <code>funcin
 
 
 
-
-
 <h1>5 &ndash; <a name="5">The Auxiliary Library</a></h1>
 
 <p>
@@ -6329,7 +6340,7 @@ always raise an error if the check is not satisfied.
 
 
 
-<h2>5.1 &ndash; <a name="5.1">Functions and Types</a></h2>
+<h2>5.2 &ndash; <a name="5.2">Functions and Types</a></h2>
 
 <p>
 Here we list all functions and types from the auxiliary library
@@ -7124,7 +7135,7 @@ with <code>tname</code> in the registry.
 Creates a new Lua state.
 It calls <a href="#lua_newstate"><code>lua_newstate</code></a> with an
 allocator based on the standard&nbsp;C allocation functions
-and then sets a warning function and a panic function (see <a href="#4.6">&sect;4.6</a>)
+and then sets a warning function and a panic function (see <a href="#4.4">&sect;4.4</a>)
 that print messages to the standard error output.
 
 
@@ -7874,7 +7885,7 @@ they are not shared with any other function.
 
 <p>
 <code>chunkname</code> is used as the name of the chunk for error messages
-and debug information (see <a href="#4.9">&sect;4.9</a>).
+and debug information (see <a href="#5.1">&sect;5.1</a>).
 When absent,
 it defaults to <code>chunk</code>, if <code>chunk</code> is a string,
 or to "<code>=(load)</code>" otherwise.
@@ -7991,6 +8002,7 @@ which is true if the call succeeds without errors.
 In such case, <code>pcall</code> also returns all results from the call,
 after this first result.
 In case of any error, <code>pcall</code> returns <b>false</b> plus the error object.
+Note that errors caught by <code>pcall</code> do not call a message handler.
 
 
 
@@ -10893,7 +10905,7 @@ which automatically removes the file when the program ends.
 
 <p>
 This library provides
-the functionality of the debug interface (<a href="#4.9">&sect;4.9</a>) to Lua programs.
+the functionality of the debug interface (<a href="#5.1">&sect;5.1</a>) to Lua programs.
 You should exert care when using this library.
 Several of its functions
 violate basic assumptions about Lua code
@@ -11051,7 +11063,7 @@ or <b>nil</b> if it does not have a metatable.
 
 
 <p>
-Returns the registry table (see <a href="#4.5">&sect;4.5</a>).
+Returns the registry table (see <a href="#4.3">&sect;4.3</a>).
 
 
 
@@ -11528,6 +11540,14 @@ not a float.
 </li>
 
 <li>
+Literal decimal integer constants that overflow are read as floats,
+instead of wrapping around.
+You can use hexadecimal notation for such constants if you
+want the old bevhavior
+(reading them as integers with wrap around).
+</li>
+
+<li>
 The use of the <code>__lt</code> metamethod to emulate <code>__le</code>
 has been removed.
 When needed, this metamethod must be explicitly defined.
@@ -11737,7 +11757,7 @@ and LiteralString, see <a href="#3.1">&sect;3.1</a>.)
 
 
 
-
+}
 
 
 
