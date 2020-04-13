@@ -284,7 +284,7 @@ function activateLuaDoc(workPath, disposables, LuaDoc) {
 
 function activate(context) {
     activateLuaDoc(context.extensionPath, context.subscriptions, {
-        ViewType: context.ViewType || 'lua-doc',
+        ViewType: context.ViewType || 'test-lua-doc',
         OpenCommand: context.OpenCommand || 'test.lua.doc',
     });
 }
