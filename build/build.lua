@@ -14,6 +14,7 @@ end
 
 local function build(ver)
     exec("build/"..ver.."/manual/2html", "<build/"..ver.."/manual/manual.of", ">doc/en-us/"..ver.."/manual.html")
+    os.remove("out/en-us/"..ver.."/.compiled")
 end
 
 build "54"
