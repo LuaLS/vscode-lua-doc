@@ -98,8 +98,12 @@ see Roberto's book, <em>Programming in Lua</em>.
 
 <h1>2 &ndash; <a name="2">Basic Concepts</a></h1>
 
+
+
 <p>
 This section describes the basic concepts of the language.
+
+
 
 
 
@@ -693,6 +697,8 @@ right after its creation.
 
 <h2>2.5 &ndash; <a name="2.5">Garbage Collection</a></h2>
 
+
+
 <p>
 Lua performs automatic memory management.
 This means that
@@ -726,6 +732,8 @@ You can change the GC mode and parameters by calling
 or <a href="#pdf-collectgarbage"><code>collectgarbage</code></a> in Lua.
 You can also use these functions to control
 the collector directly (e.g., to stop and restart it).
+
+
 
 
 
@@ -1128,6 +1136,8 @@ and <a href="#lua_yield"><code>lua_yield</code></a>.
 
 <h1>3 &ndash; <a name="3">The Language</a></h1>
 
+
+
 <p>
 This section describes the lexis, the syntax, and the semantics of Lua.
 In other words,
@@ -1147,6 +1157,8 @@ keywords are shown like <b>kword</b>,
 and other terminal symbols are shown like &lsquo;<b>=</b>&rsquo;.
 The complete syntax of Lua can be found in <a href="#9">&sect;9</a>
 at the end of this manual.
+
+
 
 
 
@@ -1423,12 +1435,16 @@ the variable <code>_ENV</code> itself is never global (see <a href="#2.2">&sect;
 
 <h2>3.3 &ndash; <a name="3.3">Statements</a></h2>
 
+
+
 <p>
 Lua supports an almost conventional set of statements,
 similar to those in other conventional languages.
 This set includes
 blocks, assignments, control structures, function calls,
 and variable declarations.
+
+
 
 
 
@@ -1967,6 +1983,8 @@ in case of errors.
 
 <h2>3.4 &ndash; <a name="3.4">Expressions</a></h2>
 
+
+
 <p>
 The basic expressions in Lua are the following:
 
@@ -2050,6 +2068,8 @@ Thus,
 even if <code>f</code> returns several values.
 (The value of <code>(f(x,y,z))</code> is the first value returned by <code>f</code>
 or <b>nil</b> if <code>f</code> does not return any values.)
+
+
 
 
 
@@ -2797,6 +2817,8 @@ while all of them share the same <code>x</code>.
 
 <h1>4 &ndash; <a name="4">The Application Program Interface</a></h1>
 
+
+
 <p>
 
 This section describes the C&nbsp;API for Lua, that is,
@@ -2846,7 +2868,11 @@ to the <em>main thread</em> in the new state.
 
 
 
+
+
 <h2>4.1 &ndash; <a name="4.1">The Stack</a></h2>
+
+
 
 <p>
 Lua uses a <em>virtual stack</em> to pass values to and from C.
@@ -2882,6 +2908,8 @@ index&nbsp;<em>n</em> represents the last element;
 index&nbsp;-1 also represents the last element
 (that is, the element at the&nbsp;top)
 and index <em>-n</em> represents the first element.
+
+
 
 
 
@@ -3057,6 +3085,8 @@ the global environment.
 
 <h2>4.4 &ndash; <a name="4.4">Error Handling in C</a></h2>
 
+
+
 <p>
 Internally, Lua uses the C <code>longjmp</code> facility to handle errors.
 (Lua will use exceptions if you compile it as C++;
@@ -3115,6 +3145,8 @@ in particular, the error object is on the top of the stack.
 However, there is no guarantee about stack space.
 To push anything on the stack,
 the panic function must first check the available space (see <a href="#4.1.1">&sect;4.1.1</a>).
+
+
 
 
 
@@ -4262,7 +4294,7 @@ The <code>data</code> argument is an opaque value passed to the reader function.
 
 <p>
 The <code>chunkname</code> argument gives a name to the chunk,
-which is used for error messages and in debug information (see <a href="#5.1">&sect;5.1</a>).
+which is used for error messages and in debug information (see <a href="#4.7">&sect;4.7</a>).
 
 
 <p>
@@ -4496,8 +4528,6 @@ since by then the stack has unwound.
 <p>
 The <a href="#lua_pcall"><code>lua_pcall</code></a> function returns one of the following status codes:
 <a href="#pdf-LUA_OK"><code>LUA_OK</code></a>, <a href="#pdf-LUA_ERRRUN"><code>LUA_ERRRUN</code></a>, <a href="#pdf-LUA_ERRMEM"><code>LUA_ERRMEM</code></a>, or <a href="#pdf-LUA_ERRERR"><code>LUA_ERRERR</code></a>.
-
-
 
 
 
@@ -5712,7 +5742,7 @@ when the coroutine eventually resumes,
 it continues executing the continuation function.
 However, there is one special case,
 which is when this function is called
-from inside a line or a count hook (see <a href="#5.1">&sect;5.1</a>).
+from inside a line or a count hook (see <a href="#4.7">&sect;4.7</a>).
 In that case, <code>lua_yieldk</code> should be called with no continuation
 (probably in the form of <a href="#lua_yield"><code>lua_yield</code></a>) and no results,
 and the hook should return immediately after the call.
@@ -5733,7 +5763,9 @@ or it is called from a thread that is not running inside a resume
 
 
 
-<h2>5.1 &ndash; <a name="5.1">The Debug Interface</a></h2>
+
+
+<h2>4.7 &ndash; <a name="4.7">The Debug Interface</a></h2>
 
 <p>
 Lua has no built-in debugging facilities.
@@ -6292,7 +6324,11 @@ refer to the <code>n2</code>-th upvalue of the Lua closure at index <code>funcin
 
 
 
+
+
 <h1>5 &ndash; <a name="5">The Auxiliary Library</a></h1>
+
+
 
 <p>
 
@@ -6340,7 +6376,9 @@ always raise an error if the check is not satisfied.
 
 
 
-<h2>5.2 &ndash; <a name="5.2">Functions and Types</a></h2>
+
+
+<h2>5.1 &ndash; <a name="5.1">Functions and Types</a></h2>
 
 <p>
 Here we list all functions and types from the auxiliary library
@@ -7583,6 +7621,8 @@ This function is used to build a prefix for error messages.
 
 <h1>6 &ndash; <a name="6">The Standard Libraries</a></h1>
 
+
+
 <p>
 The standard Lua libraries provide useful functions
 that are implemented in&nbsp;C through the C&nbsp;API.
@@ -7662,6 +7702,8 @@ the host program can open them individually by using
 <a name="pdf-luaopen_os"><code>luaopen_os</code></a> (for the operating system library),
 and <a name="pdf-luaopen_debug"><code>luaopen_debug</code></a> (for the debug library).
 These functions are declared in <a name="pdf-lualib.h"><code>lualib.h</code></a>.
+
+
 
 
 
@@ -7885,7 +7927,7 @@ they are not shared with any other function.
 
 <p>
 <code>chunkname</code> is used as the name of the chunk for error messages
-and debug information (see <a href="#5.1">&sect;5.1</a>).
+and debug information (see <a href="#4.7">&sect;4.7</a>).
 When absent,
 it defaults to <code>chunk</code>, if <code>chunk</code> is a string,
 or to "<code>=(load)</code>" otherwise.
@@ -8748,6 +8790,8 @@ or <b>fail</b> plus an error message if none succeeds.
 
 <h2>6.4 &ndash; <a name="6.4">String Manipulation</a></h2>
 
+
+
 <p>
 This library provides generic functions for string manipulation,
 such as finding and extracting substrings, and pattern matching.
@@ -9206,7 +9250,11 @@ The definition of what a lowercase letter is depends on the current locale.
 
 
 
+
+
 <h3>6.4.1 &ndash; <a name="6.4.1">Patterns</a></h3>
+
+
 
 <p>
 Patterns in Lua are described by regular strings,
@@ -9217,6 +9265,8 @@ which are interpreted as patterns by the pattern-matching functions
 and <a href="#pdf-string.match"><code>string.match</code></a>.
 This section describes the syntax and the meaning
 (that is, what they match) of these strings.
+
+
 
 
 
@@ -10905,7 +10955,7 @@ which automatically removes the file when the program ends.
 
 <p>
 This library provides
-the functionality of the debug interface (<a href="#5.1">&sect;5.1</a>) to Lua programs.
+the functionality of the debug interface (<a href="#4.7">&sect;4.7</a>) to Lua programs.
 You should exert care when using this library.
 Several of its functions
 violate basic assumptions about Lua code
@@ -11479,6 +11529,8 @@ is a more portable solution.
 
 <h1>8 &ndash; <a name="8">Incompatibilities with the Previous Version</a></h1>
 
+
+
 <p>
 Here we list the incompatibilities that you may find when moving a program
 from Lua&nbsp;5.3 to Lua&nbsp;5.4.
@@ -11519,6 +11571,8 @@ precompiled chunks are not compatible between different Lua versions.
 <p>
 The standard paths in the official distribution may
 change between versions.
+
+
 
 
 
@@ -11757,7 +11811,7 @@ and LiteralString, see <a href="#3.1">&sect;3.1</a>.)
 
 
 
-}
+
 
 
 
