@@ -7371,7 +7371,7 @@ it to the buffer.
 <pre>void luaL_pushfail (lua_State *L);</pre>
 
 <p>
-Pushes the <b>fail</b> value onto the stack.
+Pushes the <b>fail</b> value onto the stack (see <a href="#6">&sect;6</a>).
 
 
 
@@ -11708,6 +11708,17 @@ An extra parameter in these functions makes them more permissive.
 The options "<code>setpause</code>" and "<code>setstepmul</code>"
 of the function <a href="#pdf-collectgarbage"><code>collectgarbage</code></a> are deprecated.
 You should use the new option "<code>incremental</code>" to set them.
+</li>
+
+<li>
+The function <a href="#pdf-io.lines"><code>io.lines</code></a> now returns four values,
+instead of just one.
+That can be a problem when it is used as the sole
+argument to another function that has optional parameters,
+such as in <code>load(io.lines(filename, "L"))</code>.
+To fix that issue,
+you can wrap the call into parentheses,
+to adjust its number of results to one.
 </li>
 
 </ul>
