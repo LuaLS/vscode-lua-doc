@@ -76,16 +76,6 @@ function compileHtml(srcPath, dstPath, language, version, name) {
 </SCRIPT>
 $1
 `);
-    fs.readdirSync(srcPath).forEach(function (name) {
-        const file = path.join(srcPath, name);
-        const stat = fs.statSync(file);
-        if (stat && stat.isFile()) {
-            if (".html" != path.extname(file)) {
-                const uri = currentPanel.webview.asWebviewUri(vscode.Uri.file(path.join(dstPath, name)));
-                html = html.replace(name, uri);
-            }
-        }
-    });
     fs.writeFileSync(path.join(dstPath, name), html);
 }
 
@@ -162,8 +152,22 @@ function openHtml(workPath, file) {
 </html>`;
         return;
     }
-    const html = fs.readFileSync(htmlPath, 'utf8');
+    let html = fs.readFileSync(htmlPath, 'utf8');
     currentPanel.title = html.match(/<title>(.*?)<\/title>/i)[1];
+
+    const srcPath = path.join(workPath, 'doc', language, version);
+    const dstPath = path.join(workPath, 'out', language, version);
+    fs.readdirSync(srcPath).forEach(function (name) {
+        const file = path.join(srcPath, name);
+        const stat = fs.statSync(file);
+        if (stat && stat.isFile()) {
+            if (".html" != path.extname(file)) {
+                const uri = currentPanel.webview.asWebviewUri(vscode.Uri.file(path.join(dstPath, name)));
+                html = html.replace(name, uri);
+            }
+        }
+    });
+
     currentPanel.webview.html = html;
 }
 
