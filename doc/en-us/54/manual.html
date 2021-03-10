@@ -20,7 +20,7 @@ by Roberto Ierusalimschy, Luiz Henrique de Figueiredo, Waldemar Celes
 <p>
 <small>
 <a href="http://www.lua.org/copyright.html">Copyright</a>
-&copy; 2020 Lua.org, PUC-Rio.  All rights reserved.
+&copy; 2021 Lua.org, PUC-Rio.  All rights reserved.
 </small>
 <hr>
 
@@ -431,7 +431,7 @@ under certain events.
 You can change several aspects of the behavior
 of a value by setting specific fields in its metatable.
 For instance, when a non-numeric value is the operand of an addition,
-Lua checks for a function in the field "<code>__add</code>" of the value's metatable.
+Lua checks for a function in the field <code>__add</code> of the value's metatable.
 If it finds one,
 Lua calls this function to perform the addition.
 
@@ -898,7 +898,7 @@ For an object (table or userdata) to be finalized when collected,
 you must <em>mark</em> it for finalization.
 
 You mark an object for finalization when you set its metatable
-and the metatable has a field indexed by the string "<code>__gc</code>".
+and the metatable has a <code>__gc</code> metamethod.
 Note that if you set a metatable without a <code>__gc</code> field
 and later create that field in the metatable,
 the object will not be marked for finalization.
@@ -3763,7 +3763,7 @@ The index must be the last index previously marked to be closed
 
 
 <p>
-A @@@@@@@ metamethod cannot yield
+A <code>__close</code> metamethod cannot yield
 when called through this function.
 
 
