@@ -47,13 +47,15 @@ function compileHtml(srcPath, dstPath, language, version, name) {
         });
     }
     for (const link of document.querySelectorAll('a[href*=".html"]')) {
-        link.addEventListener('click', () => {
-            const uri = link.getAttribute('href');
-            vscode.postMessage({
-                command: 'goto',
-                uri: uri,
+        const uri = link.getAttribute('href');
+        if (uri.substr(0,5) !== 'http:') {
+            link.addEventListener('click', () => {
+                vscode.postMessage({
+                    command: 'goto',
+                    uri: uri,
+                });
             });
-        });
+        }
     }
     window.addEventListener('message', event => {
         const message = event.data;
