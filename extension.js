@@ -73,6 +73,9 @@ function compileHtml(srcPath, dstPath, language, version, name) {
         saveState();
     }, 100);
     saveState();
+    vscode.postMessage({
+        command: 'loaded'
+    });
 </SCRIPT>
 $1
 `);
@@ -132,11 +135,12 @@ function checkAndCompile(workPath, language, version) {
     return true
 }
 
-function openHtml(workPath, file) {
+function openHtml(workPath, file, initmsg) {
     const language = currentPanel._language;
     const version = currentPanel._version;
     const htmlPath = path.join(workPath, 'out', language, version, file);
     if (currentPanel._file == htmlPath) {
+        currentPanel.webview.postMessage(initmsg);
         return;
     }
     currentPanel._file = htmlPath;
@@ -169,10 +173,7 @@ function openHtml(workPath, file) {
     });
 
     currentPanel.webview.html = html;
-}
-
-function gotoAnchor(anchor) {
-    currentPanel.webview.postMessage({ command: 'goto', anchor: anchor });
+    currentPanel.webview.initmsg = initmsg;
 }
 
 function parseUri(uri) {
@@ -198,21 +199,23 @@ function getViewColumn(reveal) {
     return vscode.ViewColumn.One;
 }
 
-function createPanel(workPath, disposables, viewType) {
-    const options = {
-        enableScripts: true,
-        enableFindWidget: true,
-        retainContextWhenHidden: true,
-    };
-    let panel = vscode.window.createWebviewPanel(viewType, '', { viewColumn: getViewColumn(false), preserveFocus: true }, options);
-    panel.webview.onDidReceiveMessage(
+function registerMessage(workPath, webview, disposables) {
+    webview.onDidReceiveMessage(
         message => {
             switch (message.command) {
+                case 'loaded':
+                    if (webview.initmsg !== undefined) {
+                        webview.postMessage(webview.initmsg);
+                        webview.initmsg = undefined;
+                    }
+                    return;
                 case 'goto':
                     const uri = message.uri.split("#");
-                    openHtml(workPath, uri[0]);
                     if (uri[1]) {
-                        gotoAnchor(uri[1]);
+                        openHtml(workPath, uri[0], { command: 'goto', anchor: uri[1] });
+                    }
+                    else {
+                        openHtml(workPath, uri[0]);
                     }
                     return;
             }
@@ -220,6 +223,16 @@ function createPanel(workPath, disposables, viewType) {
         null,
         disposables
     );
+}
+
+function createPanel(workPath, disposables, viewType) {
+    const options = {
+        enableScripts: true,
+        enableFindWidget: true,
+        retainContextWhenHidden: true,
+    };
+    let panel = vscode.window.createWebviewPanel(viewType, '', { viewColumn: getViewColumn(false), preserveFocus: true }, options);
+    registerMessage(workPath, panel.webview, disposables);
     panel.onDidDispose(
         () => {
             currentPanel = undefined;
@@ -245,23 +258,25 @@ function createWebviewPanel(workPath, disposables, viewType, uri) {
     if (!checkAndCompile(workPath, args.language, args.version)) {
         return;
     }
-    openHtml(workPath, args.file);
     if (args.anchor) {
-        gotoAnchor(args.anchor);
+        openHtml(workPath, args.file, { command: 'goto', anchor: args.anchor });
+    }
+    else {
+        openHtml(workPath, args.file);
     }
 }
 
-function revealWebviewPanel(workPath, webviewPanel, state) {
+function revealWebviewPanel(workPath, disposables, webviewPanel, state) {
     if (!state) {
         webviewPanel.dispose();
         return;
     }
     currentPanel = webviewPanel;
+    registerMessage(workPath, currentPanel.webview, disposables);
     if (!checkAndCompile(workPath, state.language, state.version)) {
         return;
     }
-    openHtml(workPath, state.file);
-    currentPanel.webview.postMessage({
+    openHtml(workPath, state.file, {
         command: 'scrollTo',
         top: state.scrollTop,
         left: state.scrollLeft,
@@ -280,7 +295,7 @@ function activateLuaDoc(workPath, disposables, LuaDoc) {
     vscode.window.registerWebviewPanelSerializer(LuaDoc.ViewType, {
         deserializeWebviewPanel(webviewPanel, state) {
             try {
-                revealWebviewPanel(workPath, webviewPanel, state)
+                revealWebviewPanel(workPath, disposables, webviewPanel, state)
             } catch (error) {
                 console.error(error)
             }
