@@ -1628,8 +1628,10 @@ before the adjustment
 
 
 <p>
-The assignment statement first evaluates all its expressions
-and only then the assignments are performed.
+If a variable is both assigned and read
+inside a multiple assignment,
+Lua ensures all reads get the value of the variable
+before the assignment.
 Thus the code
 
 <pre>
@@ -1651,6 +1653,14 @@ and
      x, y, z = y, z, x
 </pre><p>
 cyclically permutes the values of <code>x</code>, <code>y</code>, and <code>z</code>.
+
+
+<p>
+Note that this guarantee covers only accesses
+syntactically inside the assignment statement.
+If a function or a metamethod called during the assignment
+changes the value of a variable,
+Lua gives no guarantees about the order of that access.
 
 
 <p>
@@ -5352,12 +5362,8 @@ If <code>index</code> is&nbsp;0, then all stack elements are removed.
 
 
 <p>
-For compatibility reasons,
-this function may close slots marked as to-be-closed (see <a href="#lua_toclose"><code>lua_toclose</code></a>),
-and therefore it can run arbitrary code.
-You should not rely on this behavior:
-Instead, always close to-be-closed slots explicitly,
-with <a href="#lua_closeslot"><code>lua_closeslot</code></a>, before removing them from the stack.
+This function can run arbitrary code when removing an index
+marked as to-be-closed from the stack.
 
 
 
@@ -5480,21 +5486,24 @@ otherwise, returns <code>NULL</code>.
 
 <p>
 Marks the given index in the stack as a
-to-be-closed "variable" (see <a href="#3.3.8">&sect;3.3.8</a>).
+to-be-closed slot (see <a href="#3.3.8">&sect;3.3.8</a>).
 Like a to-be-closed variable in Lua,
-the value at that index in the stack will be closed
+the value at that slot in the stack will be closed
 when it goes out of scope.
 Here, in the context of a C function,
 to go out of scope means that the running function returns to Lua,
-there is an error,
+or there is an error,
+or the slot is removed from the stack through
+<a href="#lua_settop"><code>lua_settop</code></a> or <a href="#lua_pop"><code>lua_pop</code></a>,
 or there is a call to <a href="#lua_closeslot"><code>lua_closeslot</code></a>.
-An index marked as to-be-closed should neither be removed from the stack
-nor modified before a corresponding call to <a href="#lua_closeslot"><code>lua_closeslot</code></a>.
+A slot marked as to-be-closed should not be removed from the stack
+by any other function in the API except <a href="#lua_settop"><code>lua_settop</code></a> or <a href="#lua_pop"><code>lua_pop</code></a>,
+unless previously deactivated by <a href="#lua_closeslot"><code>lua_closeslot</code></a>.
 
 
 <p>
 This function should not be called for an index
-that is equal to or below an active to-be-closed index.
+that is equal to or below an active to-be-closed slot.
 
 
 <p>
@@ -5926,7 +5935,10 @@ information about a function or an activation record.
 <a href="#lua_getstack"><code>lua_getstack</code></a> fills only the private part
 of this structure, for later use.
 To fill the other fields of <a href="#lua_Debug"><code>lua_Debug</code></a> with useful information,
-you must call <a href="#lua_getinfo"><code>lua_getinfo</code></a>.
+you must call <a href="#lua_getinfo"><code>lua_getinfo</code></a> with an appropriate parameter.
+(Specifically, to get a field,
+you must add the letter between parentheses in the field's comment
+to the parameter <code>what</code> of <a href="#lua_getinfo"><code>lua_getinfo</code></a>.)
 
 
 <p>
@@ -6103,19 +6115,30 @@ you can write the following code:
 <p>
 Each character in the string <code>what</code>
 selects some fields of the structure <code>ar</code> to be filled or
-a value to be pushed on the stack:
+a value to be pushed on the stack.
+(These characters are also documented in the declaration of
+the structure <a href="#lua_Debug"><code>lua_Debug</code></a>,
+between parentheses in the comments following each field.)
 
 <ul>
 
-<li><b>'<code>n</code>': </b> fills in the field <code>name</code> and <code>namewhat</code>;
+<li><b>'<code>f</code>': </b>
+pushes onto the stack the function that is
+running at the given level;
+</li>
+
+<li><b>'<code>l</code>': </b> fills in the field <code>currentline</code>;
+</li>
+
+<li><b>'<code>n</code>': </b> fills in the fields <code>name</code> and <code>namewhat</code>;
+</li>
+
+<li><b>'<code>r</code>': </b> fills in the fields <code>ftransfer</code> and <code>ntransfer</code>;
 </li>
 
 <li><b>'<code>S</code>': </b>
 fills in the fields <code>source</code>, <code>short_src</code>,
 <code>linedefined</code>, <code>lastlinedefined</code>, and <code>what</code>;
-</li>
-
-<li><b>'<code>l</code>': </b> fills in the field <code>currentline</code>;
 </li>
 
 <li><b>'<code>t</code>': </b> fills in the field <code>istailcall</code>;
@@ -6125,25 +6148,13 @@ fills in the fields <code>source</code>, <code>short_src</code>,
 <code>nups</code>, <code>nparams</code>, and <code>isvararg</code>;
 </li>
 
-<li><b>'<code>f</code>': </b>
-pushes onto the stack the function that is
-running at the given level;
-</li>
-
 <li><b>'<code>L</code>': </b>
-pushes onto the stack a table whose indices are the
-numbers of the lines that are valid on the function.
-(A <em>valid line</em> is a line with some associated code,
-that is, a line where you can put a break point.
-Non-valid lines include empty lines and comments.)
-
-
-<p>
+pushes onto the stack a table whose indices are
+the lines on the function with some associated code,
+that is, the lines where you can put a break point.
+(Lines with no code include empty lines and comments.)
 If this option is given together with option '<code>f</code>',
 its table is pushed after the function.
-
-
-<p>
 This is the only option that can raise a memory error.
 </li>
 
@@ -6501,7 +6512,7 @@ Adds the byte <code>c</code> to the buffer <code>B</code>
 
 
 <hr><h3><a name="luaL_addgsub"><code>luaL_addgsub</code></a></h3><p>
-<span class="apii">[-0, +0, <em>m</em>]</span>
+<span class="apii">[-?, +?, <em>m</em>]</span>
 <pre>const void luaL_addgsub (luaL_Buffer *B, const char *s,
                          const char *p, const char *r);</pre>
 
@@ -6555,7 +6566,7 @@ to the buffer <code>B</code>
 
 
 <hr><h3><a name="luaL_addvalue"><code>luaL_addvalue</code></a></h3><p>
-<span class="apii">[-1, +?, <em>m</em>]</span>
+<span class="apii">[-?, +?, <em>m</em>]</span>
 <pre>void luaL_addvalue (luaL_Buffer *B);</pre>
 
 <p>
@@ -6709,7 +6720,7 @@ Note that any addition to the buffer may invalidate this address.
 
 
 <hr><h3><a name="luaL_buffinit"><code>luaL_buffinit</code></a></h3><p>
-<span class="apii">[-0, +0, &ndash;]</span>
+<span class="apii">[-0, +?, &ndash;]</span>
 <pre>void luaL_buffinit (lua_State *L, luaL_Buffer *B);</pre>
 
 <p>
@@ -6747,7 +6758,7 @@ Equivalent to the sequence
 
 
 <hr><h3><a name="luaL_buffsub"><code>luaL_buffsub</code></a></h3><p>
-<span class="apii">[-0, +0, &ndash;]</span>
+<span class="apii">[-?, +?, &ndash;]</span>
 <pre>void luaL_buffsub (luaL_Buffer *B, int n);</pre>
 
 <p>
@@ -7550,6 +7561,11 @@ on top of the library table.
 These values are popped from the stack after the registration.
 
 
+<p>
+A function with a <code>NULL</code> value represents a placeholder,
+which is filled with <b>false</b>.
+
+
 
 
 
@@ -8104,9 +8120,8 @@ use a numerical <b>for</b>.)
 
 
 <p>
-The behavior of <code>next</code> is undefined if,
-during the traversal,
-you assign any value to a non-existent field in the table.
+You should not assign any value to a non-existent field in a table
+during its traversal.
 You may however modify existing fields.
 In particular, you may set existing fields to nil.
 
@@ -8152,7 +8167,7 @@ This means that any error inside&nbsp;<code>f</code> is not propagated;
 instead, <code>pcall</code> catches the error
 and returns a status code.
 Its first result is the status code (a boolean),
-which is true if the call succeeds without errors.
+which is <b>true</b> if the call succeeds without errors.
 In such case, <code>pcall</code> also returns all results from the call,
 after this first result.
 In case of any error, <code>pcall</code> returns <b>false</b> plus the error object.
@@ -8432,7 +8447,7 @@ an object with type <code>"thread"</code>.
 
 
 <p>
-Returns true when the coroutine <code>co</code> can yield.
+Returns <b>true</b> when the coroutine <code>co</code> can yield.
 The default for <code>co</code> is the running coroutine.
 
 
@@ -8476,7 +8491,7 @@ If there is any error,
 
 <p>
 Returns the running coroutine plus a boolean,
-true when the running coroutine is the main one.
+<b>true</b> when the running coroutine is the main one.
 
 
 
@@ -9014,7 +9029,7 @@ otherwise, it returns <b>fail</b>.
 A third, optional numeric argument <code>init</code> specifies
 where to start the search;
 its default value is&nbsp;1 and can be negative.
-A value of <b>true</b> as a fourth, optional argument <code>plain</code>
+A <b>true</b> as a fourth, optional argument <code>plain</code>
 turns off the pattern matching facilities,
 so the function does a plain "find substring" operation,
 with no characters in <code>pattern</code> being considered magic.
@@ -9039,8 +9054,10 @@ following the description given in its first argument,
 which must be a string.
 The format string follows the same rules as the ISO&nbsp;C function <code>sprintf</code>.
 The only differences are that the conversion specifiers and modifiers
-<code>*</code>, <code>h</code>, <code>L</code>, <code>l</code>, and <code>n</code> are not supported
+<code>F</code>, <code>n</code>, <code>*</code>, <code>h</code>, <code>L</code>, and <code>l</code> are not supported
 and that there is an extra specifier, <code>q</code>.
+Both width and precision, when present,
+are limited to two digits.
 
 
 <p>
@@ -9064,7 +9081,7 @@ may produce the string:
      "a string with \"quotes\" and \
       new line"
 </pre><p>
-This specifier does not support modifiers (flags, width, length).
+This specifier does not support modifiers (flags, width, precision).
 
 
 <p>
@@ -10355,7 +10372,7 @@ or <b>fail</b> if <code>x</code> is not a number.
 
 <p>
 Returns a boolean,
-true if and only if integer <code>m</code> is below integer <code>n</code> when
+<b>true</b> if and only if integer <code>m</code> is below integer <code>n</code> when
 they are compared as unsigned integers.
 
 
