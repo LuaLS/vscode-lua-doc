@@ -20,7 +20,7 @@ by Roberto Ierusalimschy, Luiz Henrique de Figueiredo, Waldemar Celes
 <p>
 <small>
 <a href="http://www.lua.org/copyright.html">Copyright</a>
-&copy; 2021 Lua.org, PUC-Rio.  All rights reserved.
+&copy; 2022 Lua.org, PUC-Rio.  All rights reserved.
 </small>
 <hr>
 
@@ -953,11 +953,8 @@ these marks have no effect.
 
 
 <p>
-Finalizers cannot yield.
-Except for that, they can do anything,
-such as raise errors, create new objects,
-or even run the garbage collector.
-However, because they can run in unpredictable times,
+Finalizers cannot yield nor run the garbage collector.
+Because they can run in unpredictable times,
 it is good practice to restrict each finalizer
 to the minimum necessary to properly release
 its associated resource.
@@ -2418,16 +2415,21 @@ character is one byte.)
 <p>
 The length operator applied on a table
 returns a border in that table.
-A <em>border</em> in a table <code>t</code> is any natural number
+A <em>border</em> in a table <code>t</code> is any non-negative integer
 that satisfies the following condition:
 
 <pre>
-     (border == 0 or t[border] ~= nil) and t[border + 1] == nil
+     (border == 0 or t[border] ~= nil) and
+     (t[border + 1] == nil or border == math.maxinteger)
 </pre><p>
 In words,
-a border is any (natural) index present in the table
-that is followed by an absent index
-(or zero, when index 1 is absent).
+a border is any positive integer index present in the table
+that is followed by an absent index,
+plus two limit cases:
+zero, when index 1 is absent;
+and the maximum value for an integer, when that index is present.
+Note that keys that are not positive integers
+do not interfere with borders.
 
 
 <p>
@@ -2438,12 +2440,9 @@ The table <code>{10, 20, 30, nil, 50}</code> has two borders (3 and 5),
 and therefore it is not a sequence.
 (The <b>nil</b> at index 4 is called a <em>hole</em>.)
 The table <code>{nil, 20, 30, nil, nil, 60, nil}</code>
-has three borders (0, 3, and 6) and three holes
-(at indices 1, 4, and 5),
+has three borders (0, 3, and 6),
 so it is not a sequence, too.
 The table <code>{}</code> is a sequence with border 0.
-Note that non-natural keys do not interfere
-with whether a table is a sequence.
 
 
 <p>
@@ -2461,7 +2460,7 @@ the memory addresses of its non-numeric keys.)
 <p>
 The computation of the length of a table
 has a guaranteed worst time of <em>O(log n)</em>,
-where <em>n</em> is the largest natural key in the table.
+where <em>n</em> is the largest integer key in the table.
 
 
 <p>
@@ -3064,7 +3063,7 @@ In general,
 Lua's garbage collection can free or move internal memory
 and then invalidate pointers to internal strings.
 To allow a safe use of these pointers,
-The API guarantees that any pointer to a string in a stack index
+the API guarantees that any pointer to a string in a stack index
 is valid while the string value at that index is not removed from the stack.
 (It can be moved to another index, though.)
 When the index is a pseudo-index (referring to an upvalue),
@@ -3979,6 +3978,10 @@ Returns the previous mode (<code>LUA_GCGEN</code> or <code>LUA_GCINC</code>).
 </ul><p>
 For more details about these options,
 see <a href="#pdf-collectgarbage"><code>collectgarbage</code></a>.
+
+
+<p>
+This function should not be called by a finalizer.
 
 
 
@@ -4974,6 +4977,7 @@ Also returns&nbsp;0 if any of the indices are not valid.
 <p>
 Similar to <a href="#lua_gettable"><code>lua_gettable</code></a>, but does a raw access
 (i.e., without metamethods).
+The value at <code>index</code> must be a table.
 
 
 
@@ -5040,6 +5044,7 @@ For other values, this call returns&nbsp;0.
 <p>
 Similar to <a href="#lua_settable"><code>lua_settable</code></a>, but does a raw assignment
 (i.e., without metamethods).
+The value at <code>index</code> must be a table.
 
 
 
@@ -6762,7 +6767,7 @@ Equivalent to the sequence
 <pre>void luaL_buffsub (luaL_Buffer *B, int n);</pre>
 
 <p>
-Removes <code>n</code> bytes from the the buffer <code>B</code>
+Removes <code>n</code> bytes from the buffer <code>B</code>
 (see <a href="#luaL_Buffer"><code>luaL_Buffer</code></a>).
 The buffer must have at least that many bytes.
 
@@ -7928,6 +7933,10 @@ See <a href="#2.5">&sect;2.5</a> for more details about garbage collection
 and some of these options.
 
 
+<p>
+This function should not be called by a finalizer.
+
+
 
 
 <p>
@@ -7945,7 +7954,7 @@ to its caller.
 
 <p>
 <hr><h3><a name="pdf-error"><code>error (message [, level])</code></a></h3>
-Raises an error (see <a href="#2.3">&sect;2.3</a>) with @{message} as the error object.
+Raises an error (see <a href="#2.3">&sect;2.3</a>) with <code>message</code> as the error object.
 This function never returns.
 
 
@@ -9296,7 +9305,7 @@ according to the format string <code>fmt</code> (see <a href="#6.4.2">&sect;6.4.
 
 
 <p>
-Returns the size of a string resulting from <a href="#pdf-string.pack"><code>string.pack</code></a>
+Returns the length of a string resulting from <a href="#pdf-string.pack"><code>string.pack</code></a>
 with the given format.
 The format string cannot have the variable-length options
 '<code>s</code>' or '<code>z</code>' (see <a href="#6.4.2">&sect;6.4.2</a>).
