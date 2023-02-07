@@ -1725,11 +1725,6 @@ even if this other label has been declared in an enclosing block.
 
 
 <p>
-Labels and empty statements are called <em>void statements</em>,
-as they perform no actions.
-
-
-<p>
 The <b>break</b> statement terminates the execution of a
 <b>while</b>, <b>repeat</b>, or <b>for</b> loop,
 skipping to the next statement after the loop:
@@ -2864,6 +2859,7 @@ Lua is a lexically scoped language.
 The scope of a local variable begins at the first statement after
 its declaration and lasts until the last non-void statement
 of the innermost block that includes the declaration.
+(<em>Void statements</em> are labels and empty statements.)
 Consider the following example:
 
 <pre>
@@ -3836,8 +3832,7 @@ when called through this function.
 
 
 <p>
-(Exceptionally, this function was introduced in release 5.4.3.
-It is not present in previous 5.4 releases.)
+(This function was introduced in release&nbsp;5.4.3.)
 
 
 
@@ -4593,7 +4588,7 @@ Pops a key from the stack,
 and pushes a key&ndash;value pair from the table at the given index,
 the "next" pair after the given key.
 If there are no more elements in the table,
-then <a href="#lua_next"><code>lua_next</code></a> returns 0 and pushes nothing.
+then <a href="#lua_next"><code>lua_next</code></a> returns&nbsp;0 and pushes nothing.
 
 
 <p>
@@ -5216,7 +5211,7 @@ and then pops the top element.
 
 <hr><h3><a name="lua_resetthread"><code>lua_resetthread</code></a></h3><p>
 <span class="apii">[-0, +?, &ndash;]</span>
-<pre>int lua_resetthread (lua_State *L);</pre>
+<pre>int lua_resetthread (lua_State *L, lua_State *from);</pre>
 
 <p>
 Resets a thread, cleaning its call stack and closing all pending
@@ -5228,6 +5223,13 @@ errors in closing methods),
 or an error status otherwise.
 In case of error,
 leaves the error object on the top of the stack.
+
+
+<p>
+The parameter <code>from</code> represents the coroutine that is resetting <code>L</code>.
+If there is no such coroutine,
+this parameter can be <code>NULL</code>.
+(This parameter was introduced in release&nbsp;5.4.5.)
 
 
 
@@ -7021,8 +7023,8 @@ It is defined as the following macro:
 <pre>
      (luaL_loadfile(L, filename) || lua_pcall(L, 0, LUA_MULTRET, 0))
 </pre><p>
-It returns <a href="#pdf-LUA_OK"><code>LUA_OK</code></a> if there are no errors,
-or an error code in case of errors (see <a href="#4.4.1">&sect;4.4.1</a>).
+It returns&nbsp;0 (<a href="#pdf-LUA_OK"><code>LUA_OK</code></a>) if there are no errors,
+or 1 in case of errors.
 
 
 
@@ -7039,8 +7041,8 @@ It is defined as the following macro:
 <pre>
      (luaL_loadstring(L, str) || lua_pcall(L, 0, LUA_MULTRET, 0))
 </pre><p>
-It returns <a href="#pdf-LUA_OK"><code>LUA_OK</code></a> if there are no errors,
-or an error code in case of errors (see <a href="#4.4.1">&sect;4.4.1</a>).
+It returns&nbsp;0 (<a href="#pdf-LUA_OK"><code>LUA_OK</code></a>) if there are no errors,
+or 1 in case of errors.
 
 
 
@@ -11008,7 +11010,7 @@ The default value for <code>code</code> is <b>true</b>.
 
 <p>
 If the optional second argument <code>close</code> is true,
-closes the Lua state before exiting.
+the function closes the Lua state before exiting (see <a href="#lua_close"><code>lua_close</code></a>).
 
 
 
@@ -11558,12 +11560,18 @@ The options are:
 <li><b><code>-i</code>: </b> enter interactive mode after running <em>script</em>;</li>
 <li><b><code>-l <em>mod</em></code>: </b> "require" <em>mod</em> and assign the
   result to global <em>mod</em>;</li>
+<li><b><code>-l <em>g=mod</em></code>: </b> "require" <em>mod</em> and assign the
+  result to global <em>g</em>;</li>
 <li><b><code>-v</code>: </b> print version information;</li>
 <li><b><code>-E</code>: </b> ignore environment variables;</li>
 <li><b><code>-W</code>: </b> turn warnings on;</li>
 <li><b><code>--</code>: </b> stop handling options;</li>
 <li><b><code>-</code>: </b> execute <code>stdin</code> as a file and stop handling options.</li>
 </ul><p>
+(The form <code>-l <em>g=mod</em></code> was introduced in release&nbsp;5.4.4.)
+
+
+<p>
 After handling its options, <code>lua</code> runs the given <em>script</em>.
 When called without arguments,
 <code>lua</code> behaves as <code>lua -v -i</code>
