@@ -20,7 +20,7 @@ by Roberto Ierusalimschy, Luiz Henrique de Figueiredo, Waldemar Celes
 <p>
 <small>
 <a href="http://www.lua.org/copyright.html">Copyright</a>
-&copy; 2022 Lua.org, PUC-Rio.  All rights reserved.
+&copy; 2023 Lua.org, PUC-Rio.  All rights reserved.
 </small>
 <hr>
 
@@ -55,7 +55,7 @@ and rapid prototyping.
 
 <p>
 Lua is implemented as a library, written in <em>clean C</em>,
-the common subset of Standard&nbsp;C and C++.
+the common subset of standard&nbsp;C and C++.
 The Lua distribution includes a host program called <code>lua</code>,
 which uses the Lua library to offer a complete,
 standalone Lua interpreter,
@@ -3584,7 +3584,7 @@ It is used in the auxiliary library by <a href="#luaL_newstate"><code>luaL_newst
          return realloc(ptr, nsize);
      }
 </pre><p>
-Note that Standard&nbsp;C ensures
+Note that ISO&nbsp;C ensures
 that <code>free(NULL)</code> has no effect and that
 <code>realloc(NULL,size)</code> is equivalent to <code>malloc(size)</code>.
 
@@ -7349,7 +7349,7 @@ with <code>tname</code> in the registry.
 <p>
 Creates a new Lua state.
 It calls <a href="#lua_newstate"><code>lua_newstate</code></a> with an
-allocator based on the standard&nbsp;C allocation functions
+allocator based on the ISO&nbsp;C allocation functions
 and then sets a warning function and a panic function (see <a href="#4.4">&sect;4.4</a>)
 that print messages to the standard error output.
 
@@ -8800,7 +8800,7 @@ including if necessary a path and an extension.
 
 
 <p>
-This function is not supported by Standard&nbsp;C.
+This functionality is not supported by ISO&nbsp;C.
 As such, it is only available on some platforms
 (Windows, Linux, Mac OS X, Solaris, BSD,
 plus other Unix systems that support the <code>dlfcn</code> standard).
