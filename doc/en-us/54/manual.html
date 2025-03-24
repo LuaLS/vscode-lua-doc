@@ -20,7 +20,7 @@ by Roberto Ierusalimschy, Luiz Henrique de Figueiredo, Waldemar Celes
 <p>
 <small>
 <a href="http://www.lua.org/copyright.html">Copyright</a>
-&copy; 2023 Lua.org, PUC-Rio.  All rights reserved.
+&copy; 2024 Lua.org, PUC-Rio.  All rights reserved.
 </small>
 <hr>
 
@@ -383,7 +383,7 @@ Whenever there is an error,
 an <em>error object</em>
 is propagated with information about the error.
 Lua itself only generates errors whose error object is a string,
-but programs may generate errors with
+but programs can generate errors with
 any value as the error object.
 It is up to the Lua program or its host to handle such error objects.
 For historical reasons,
@@ -393,7 +393,7 @@ even though it does not have to be a string.
 
 <p>
 When you use <a href="#pdf-xpcall"><code>xpcall</code></a> (or <a href="#lua_pcall"><code>lua_pcall</code></a>, in C)
-you may give a <em>message handler</em>
+you can give a <em>message handler</em>
 to be called in case of errors.
 This function is called with the original error object
 and returns a new error object.
@@ -445,7 +445,7 @@ which is then called a <em>metamethod</em>.
 In the previous example, the key is the string "<code>__add</code>"
 and the metamethod is the function that performs the addition.
 Unless stated otherwise,
-a metamethod may in fact be any callable value,
+a metamethod can in fact be any callable value,
 which is either a function or a value with a <code>__call</code> metamethod.
 
 
@@ -1717,7 +1717,7 @@ labels in Lua are considered statements too:
 <p>
 A label is visible in the entire block where it is defined,
 except inside nested functions.
-A goto may jump to any visible label as long as it does not
+A goto can jump to any visible label as long as it does not
 enter into the scope of a local variable.
 A label should not be declared
 where a label with the same name is visible,
@@ -5563,7 +5563,7 @@ otherwise, returns <code>NULL</code>.
 
 
 <hr><h3><a name="lua_toclose"><code>lua_toclose</code></a></h3><p>
-<span class="apii">[-0, +0, <em>m</em>]</span>
+<span class="apii">[-0, +0, <em>v</em>]</span>
 <pre>void lua_toclose (lua_State *L, int index);</pre>
 
 <p>
@@ -5581,6 +5581,11 @@ or there is a call to <a href="#lua_closeslot"><code>lua_closeslot</code></a>.
 A slot marked as to-be-closed should not be removed from the stack
 by any other function in the API except <a href="#lua_settop"><code>lua_settop</code></a> or <a href="#lua_pop"><code>lua_pop</code></a>,
 unless previously deactivated by <a href="#lua_closeslot"><code>lua_closeslot</code></a>.
+
+
+<p>
+This function raises an error if the value at the given slot
+neither has a <code>__close</code> metamethod nor is a false value.
 
 
 <p>
@@ -5659,7 +5664,7 @@ but can contain other zeros in its body.
 <p>
 This function can raise memory errors only
 when converting a number to a string
-(as then it has to create a new string).
+(as then it may create a new string).
 
 
 
@@ -11274,13 +11279,13 @@ The returned table can contain all the fields returned by <a href="#lua_getinfo"
 with the string <code>what</code> describing which fields to fill in.
 The default for <code>what</code> is to get all information available,
 except the table of valid lines.
-If present,
-the option '<code>f</code>'
+The option '<code>f</code>'
 adds a field named <code>func</code> with the function itself.
-If present,
-the option '<code>L</code>'
-adds a field named <code>activelines</code> with the table of
-valid lines.
+The option '<code>L</code>' adds a field named <code>activelines</code>
+with the table of valid lines,
+provided the function is a Lua function.
+If the function has no debug information,
+the table is empty.
 
 
 <p>
